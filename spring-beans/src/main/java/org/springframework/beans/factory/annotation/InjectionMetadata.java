@@ -116,6 +116,8 @@ public class InjectionMetadata {
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
 			for (InjectedElement element : elementsToIterate) {
+
+				// 默认调用的是AutowiredFieldElement的inject方法.
 				element.inject(target, beanName, pvs);
 			}
 		}
@@ -170,6 +172,7 @@ public class InjectionMetadata {
 
 		protected final boolean isField;
 
+		// 用来完成setter和getter操作的.
 		@Nullable
 		protected final PropertyDescriptor pd;
 
