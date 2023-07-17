@@ -56,6 +56,8 @@ import org.springframework.util.StringUtils;
  * @see AutowireCandidateQualifier
  * @see Qualifier
  * @see Value
+ *
+ * 处理@Qualifier注解和@Value注解
  */
 public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwareAutowireCandidateResolver {
 

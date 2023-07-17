@@ -43,8 +43,14 @@ import org.springframework.util.Assert;
 @SuppressWarnings("serial")
 public class AnnotatedGenericBeanDefinition extends GenericBeanDefinition implements AnnotatedBeanDefinition {
 
+	/**
+	 * 提供获取类上注解元数据的接口方法
+	 */
 	private final AnnotationMetadata metadata;
 
+	/**
+	 * 提供获取方法上面注解元数据的接口方法
+	 */
 	@Nullable
 	private MethodMetadata factoryMethodMetadata;
 
@@ -54,7 +60,11 @@ public class AnnotatedGenericBeanDefinition extends GenericBeanDefinition implem
 	 * @param beanClass the loaded bean class
 	 */
 	public AnnotatedGenericBeanDefinition(Class<?> beanClass) {
+		// 调用父类AbstractBeanDefinition设置Bean的类型
 		setBeanClass(beanClass);
+
+		// 初始化默认的注解元数据对象
+		// 该对象中提供了一系列用于获取类上注解元数据的方法
 		this.metadata = AnnotationMetadata.introspect(beanClass);
 	}
 

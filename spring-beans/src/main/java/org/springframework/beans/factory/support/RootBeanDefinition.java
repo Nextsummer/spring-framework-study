@@ -54,35 +54,67 @@ import org.springframework.util.Assert;
 @SuppressWarnings("serial")
 public class RootBeanDefinition extends AbstractBeanDefinition {
 
+	/**
+	 * 存储Bean的定义，名称，别名
+	 */
 	@Nullable
 	private BeanDefinitionHolder decoratedDefinition;
 
+	/**
+	 * 该类是jdk下的
+	 * 保存Bean的注解信息
+	 */
 	@Nullable
 	private AnnotatedElement qualifiedElement;
 
 	/** Determines if the definition needs to be re-merged. */
 	volatile boolean stale;
 
+	/**
+	 * 允许缓存
+	 */
 	boolean allowCaching = true;
 
+	/**
+	 * 工厂方法是否唯一
+	 */
 	boolean isFactoryMethodUnique;
 
+	/**
+	 * 提供了反射和泛型的一系列操作
+	 */
 	@Nullable
 	volatile ResolvableType targetType;
 
-	/** Package-visible field for caching the determined Class of a given bean definition. */
+	/**
+	 * Package-visible field for caching the determined Class of a given bean definition.
+	 *
+	 * 缓存class，表明RootBeanDefinition存储哪个类的信息
+	 * */
 	@Nullable
 	volatile Class<?> resolvedTargetType;
 
-	/** Package-visible field for caching if the bean is a factory bean. */
+	/**
+	 * Package-visible field for caching if the bean is a factory bean.
+	 *
+	 * 缓存工厂方法的返回值类型
+	 * */
 	@Nullable
 	volatile Boolean isFactoryBean;
 
-	/** Package-visible field for caching the return type of a generically typed factory method. */
+	/**
+	 * Package-visible field for caching the return type of a generically typed factory method.
+	 *
+	 * 缓存内省操作时的工厂方法
+	 * */
 	@Nullable
 	volatile ResolvableType factoryMethodReturnType;
 
-	/** Package-visible field for caching a unique factory method candidate for introspection. */
+	/**
+	 *Package-visible field for caching a unique factory method candidate for introspection.
+	 *
+	 * 缓存内省操作时的工厂方法
+	 * */
 	@Nullable
 	volatile Method factoryMethodToIntrospect;
 
@@ -93,37 +125,75 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	/** Common lock for the four constructor fields below. */
 	final Object constructorArgumentLock = new Object();
 
-	/** Package-visible field for caching the resolved constructor or factory method. */
+	/**
+	 * Package-visible field for caching the resolved constructor or factory method.
+	 *
+	 * 缓存已经解析的构造函数或是工厂方法，Executable是JDK原生自带的类，
+	 *   为Method、Constructor类型的父类
+	 * */
 	@Nullable
 	Executable resolvedConstructorOrFactoryMethod;
 
-	/** Package-visible field that marks the constructor arguments as resolved. */
+	/**
+	 * Package-visible field that marks the constructor arguments as resolved.
+	 *
+	 * 表示构造函数的参数是否已经解析完毕
+	 * */
 	boolean constructorArgumentsResolved = false;
 
-	/** Package-visible field for caching fully resolved constructor arguments. */
+	/**
+	 * Package-visible field for caching fully resolved constructor arguments.
+	 *
+	 * 缓存已经解析的构造函数的参数
+	 * */
 	@Nullable
 	Object[] resolvedConstructorArguments;
 
-	/** Package-visible field for caching partly prepared constructor arguments. */
+	/**
+	 * Package-visible field for caching partly prepared constructor arguments.
+	 *
+	 * 缓存准备解析的构造函数的参数。表示还没有进行依赖注入的形参
+	 * */
 	@Nullable
 	Object[] preparedConstructorArguments;
 
 	/** Common lock for the two post-processing fields below. */
 	final Object postProcessingLock = new Object();
 
-	/** Package-visible field that indicates MergedBeanDefinitionPostProcessor having been applied. */
+	/**
+	 * Package-visible field that indicates MergedBeanDefinitionPostProcessor having been applied.
+	 *
+	 * 表示是否已经调用MergedBeanDefinitionPostProcessor的postProcessMergedBeanDefinition方法处理过
+	 * */
 	boolean postProcessed = false;
 
-	/** Package-visible field that indicates a before-instantiation post-processor having kicked in. */
+	/**
+	 * Package-visible field that indicates a before-instantiation post-processor having kicked in.
+	 *
+	 * 生成代理的时候会使用。表示是否已经生成代理
+	 * */
 	@Nullable
 	volatile Boolean beforeInstantiationResolved;
 
+	/**
+	 * 缓存name,modifier,类定义等信息
+	 */
 	@Nullable
 	private Set<Member> externallyManagedConfigMembers;
 
+	/**
+	 * 保存InitializingBean中的init回调函数名afterPropertiesSet，以便进行生命周期回调
+	 *
+	 * 在InitDestroyAnnotationBeanPostProcessor中设置
+	 */
 	@Nullable
 	private Set<String> externallyManagedInitMethods;
 
+	/**
+	 * 保存DisposableBean的destroy回调函数名destroy，以便进行生命周期回调
+	 *
+	 * 在InitDestroyAnnotationBeanPostProcessor中设置
+	 */
 	@Nullable
 	private Set<String> externallyManagedDestroyMethods;
 
@@ -372,6 +442,8 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 	 * @return one or more preferred constructors, or {@code null} if none
 	 * (in which case the regular no-arg default constructor will be called)
 	 * @since 5.1
+	 *
+	 * 获取指定的用来创建bean对象的构造函数
 	 */
 	@Nullable
 	public Constructor<?>[] getPreferredConstructors() {

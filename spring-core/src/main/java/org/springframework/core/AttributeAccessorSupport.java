@@ -37,7 +37,11 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("serial")
 public abstract class AttributeAccessorSupport implements AttributeAccessor, Serializable {
 
-	/** Map with String keys and Object values. */
+	/**
+	 * Map with String keys and Object values.
+	 *
+	 *  使用LinkedHashMap实现对Bean中的元数据属性进行CRUD操作.
+	 * */
 	private final Map<String, Object> attributes = new LinkedHashMap<>();
 
 
@@ -45,9 +49,11 @@ public abstract class AttributeAccessorSupport implements AttributeAccessor, Ser
 	public void setAttribute(String name, @Nullable Object value) {
 		Assert.notNull(name, "Name must not be null");
 		if (value != null) {
+			// 如果value值为null不为null，直接设置
 			this.attributes.put(name, value);
 		}
 		else {
+			// 如果name对应的值为null，该属性会被移除
 			removeAttribute(name);
 		}
 	}

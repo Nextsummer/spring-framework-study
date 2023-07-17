@@ -188,17 +188,22 @@ public abstract class ClassUtils {
 	public static ClassLoader getDefaultClassLoader() {
 		ClassLoader cl = null;
 		try {
+			// 首先获取与当前线程绑定的类加载器
 			cl = Thread.currentThread().getContextClassLoader();
 		}
 		catch (Throwable ex) {
 			// Cannot access thread context ClassLoader - falling back...
 		}
 		if (cl == null) {
+
 			// No thread context class loader -> use class loader of this class.
+			// 如果没有获取到当前线程上下文类加载器，则使用当前class的类加载器
 			cl = ClassUtils.class.getClassLoader();
 			if (cl == null) {
 				// getClassLoader() returning null indicates the bootstrap ClassLoader
 				try {
+
+					// 如果没有获取到当前class的类加载器，则使用系统类加载器
 					cl = ClassLoader.getSystemClassLoader();
 				}
 				catch (Throwable ex) {
@@ -435,6 +440,8 @@ public abstract class ClassUtils {
 	 * @param clazz the class to check (typically an interface)
 	 * @param classLoader the ClassLoader to check against
 	 * @since 5.0.6
+	 *
+	 * 判断当前给定的类clazz是否可以通过给定的类加载器classLoader类加载器去加载
 	 */
 	private static boolean isLoadable(Class<?> clazz, ClassLoader classLoader) {
 		try {
@@ -974,9 +981,17 @@ public abstract class ClassUtils {
 	 * @see java.beans.Introspector#decapitalize(String)
 	 */
 	public static String getShortNameAsProperty(Class<?> clazz) {
+
+		// 获取类名的短名称。例如：java.lang.Object最后经过getShortName获取到的短名称是Object
 		String shortName = getShortName(clazz);
 		int dotIndex = shortName.lastIndexOf(PACKAGE_SEPARATOR);
 		shortName = (dotIndex != -1 ? shortName.substring(dotIndex + 1) : shortName);
+
+		/**
+		 * 获得一个字符串并将它转换成普通 java 变量名称大写形式的实用工具方法。
+		 * 这通常意味着将首字符从大写转换成小写，但在（不平常的）特殊情况下，
+		 * 当有多个字符且第一个和第二个字符都是大写字符时，不执行任何操作。
+		 */
 		return Introspector.decapitalize(shortName);
 	}
 
@@ -1161,12 +1176,14 @@ public abstract class ClassUtils {
 	 * <p>In case of any signature specified, only returns the method if there is a
 	 * unique candidate, i.e. a single public method with the specified name.
 	 * <p>Essentially translates {@code NoSuchMethodException} to {@code null}.
-	 * @param clazz the clazz to analyze
-	 * @param methodName the name of the method
-	 * @param paramTypes the parameter types of the method
+	 * @param clazz 		类型
+	 * @param methodName 	方法名称
+	 * @param paramTypes 	方法参数
 	 * (may be {@code null} to indicate any signature)
 	 * @return the method, or {@code null} if not found
 	 * @see Class#getMethod
+	 *
+	 * 根据类型和方法名称以及方法参数获取所有满足条件的方法
 	 */
 	@Nullable
 	public static Method getMethodIfAvailable(Class<?> clazz, String methodName, @Nullable Class<?>... paramTypes) {
@@ -1176,6 +1193,8 @@ public abstract class ClassUtils {
 			return getMethodOrNull(clazz, methodName, paramTypes);
 		}
 		else {
+
+			// 相同的方法名称和相同的方法参数，如果只匹配到一个方法，则直接返回该方法，如果匹配到多个方法，则会返回null。 所以此处不能有重载方法.
 			Set<Method> candidates = findMethodCandidatesByName(clazz, methodName);
 			if (candidates.size() == 1) {
 				return candidates.iterator().next();

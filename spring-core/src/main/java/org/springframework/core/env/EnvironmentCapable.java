@@ -42,6 +42,8 @@ public interface EnvironmentCapable {
 
 	/**
 	 * Return the {@link Environment} associated with this component.
+	 *
+	 * 获取与当前Bean组件相关联的运行环境信息.
 	 */
 	Environment getEnvironment();
 

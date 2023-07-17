@@ -48,12 +48,22 @@ import org.springframework.util.Assert;
  */
 public class AnnotatedBeanDefinitionReader {
 
+	/**
+	 * Bean定义注册中心接口定义.
+	 *  提供注册Bean定义及获取Bean定义信息的方法
+	 */
 	private final BeanDefinitionRegistry registry;
-
+	/**
+	 * 用来生成Bean名称的生成器
+	 */
 	private BeanNameGenerator beanNameGenerator = AnnotationBeanNameGenerator.INSTANCE;
-
+	/**
+	 * 用来解析Bean作用域信息的解析器。根据给定的Bean定义信息，解析出来Bean的作用域信息.
+	 */
 	private ScopeMetadataResolver scopeMetadataResolver = new AnnotationScopeMetadataResolver();
-
+	/**
+	 * 用于处理条件注解
+	 */
 	private ConditionEvaluator conditionEvaluator;
 
 
@@ -68,6 +78,7 @@ public class AnnotatedBeanDefinitionReader {
 	 * @see #setEnvironment(Environment)
 	 */
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry) {
+		// getOrCreateEnvironment默认返回的是StandardEnvironment
 		this(registry, getOrCreateEnvironment(registry));
 	}
 
@@ -83,8 +94,19 @@ public class AnnotatedBeanDefinitionReader {
 	public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
 		Assert.notNull(environment, "Environment must not be null");
+
+		// 初始化BeanDefinitionRegistry
 		this.registry = registry;
+
+		/**
+		 * 初始化用于处理条件注解的对象，environment默认为StandardEnvironment
+		 *
+		 * 在创建ConditionEvaluator的时候，会去初始化ConditionContextImpl上下文。
+		 * 里面会持有(registry,beanFactory,environment,resourceLoader,classLoader的引用)
+		 */
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+
+		// 注册注解版的后置处理器.
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 
@@ -250,17 +272,40 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
 
+		// 实例化注解格式的Bean定义。其中包括设置bean的类型以及初始化用于获取类注解信息的元数据对象
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+
+		/**
+		 * 根据类上面的注解元数据信息，判断注册过程是否需要跳过当前的bean，如果配置类上面未标注@Conditional注解，会返回false。不会跳过
+		 *
+		 * conditionEvaluator默认实现类为ConditionEvaluator
+		 * abd.getMetadata获取到的MedataData类型为 StandardAnnotationMetaData
+		 *
+		 * 如果当前配置类上没有标注@Conditional注解，返回false
+		 */
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
+		// 给Bean定义中注册回调supplier回调方法
 		abd.setInstanceSupplier(supplier);
+
+		// 默认实现类为：AnnotationScopeMetadataResolver，解析@Scope注解的元信息
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
+
+		// 设置bean的作用域，未设置默认为'singleton'
 		abd.setScope(scopeMetadata.getScopeName());
+
+		// 获取Bean的名称。如果传入的name为null。则使用默认的Bean Name生成器AnnotationBeanNameGenerator生成bean的名称.根据内省操作获取的bean名称.
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 
+		System.out.println("do register bean name: " + beanName);
+
+		// 解析公共注解上面的元数据信息 例如：@DependsOn， @Lazy，@Primary，@DependsOn，@Description
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
+
+		// 如果使用new AnnotationConfigApplicationContext(Class<?> clazz)创建的bean容器，
+		//    则此处的qualifiers和下面的definitionCustomizers都默认为null
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
 				if (Primary.class == qualifier) {
@@ -280,8 +325,14 @@ public class AnnotatedBeanDefinitionReader {
 			}
 		}
 
+		// 用来保存Bean的定义。包括bean的名称，定义及别名信息
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+
+		// 设置bean定义的作用域模式，如果为ScopedProxyMode.NO，直接返回.
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+
+		// 真正完成配置类bean定义的注册。将bean定义注册到bean定义注册中心，即：BeanDefinitionRegistry中
+		// this.registry即AnnotationConfigApplicationContext对象
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
 
@@ -292,6 +343,9 @@ public class AnnotatedBeanDefinitionReader {
 	 */
 	private static Environment getOrCreateEnvironment(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
+
+		// AnnotationConfigApplicationContext是EnvironmentCapable接口的实例，
+		//   然后会调用AbstractApplicationContext的getEnvironment方法
 		if (registry instanceof EnvironmentCapable) {
 			return ((EnvironmentCapable) registry).getEnvironment();
 		}

@@ -132,8 +132,11 @@ public abstract class AnnotationConfigUtils {
 	/**
 	 * Register all relevant annotation post processors in the given registry.
 	 * @param registry the registry to operate on
+	 *
+	 *  registry: AnnotationConfigApplicationContext
 	 */
 	public static void registerAnnotationConfigProcessors(BeanDefinitionRegistry registry) {
+		// 向Bean定义注册中心注册注解配置形式的后置处理器
 		registerAnnotationConfigProcessors(registry, null);
 	}
 
@@ -144,42 +147,85 @@ public abstract class AnnotationConfigUtils {
 	 * that this registration was triggered from. May be {@code null}.
 	 * @return a Set of BeanDefinitionHolders, containing all bean definitions
 	 * that have actually been registered by this call
+	 *
+	 * 为什么需要返回值？
+	 *     在xml方式配置bean的时候，如果开启了注解驱动，需要在解析xml标签的时候得到这些默认的后置处理器，做下一步的操作.
+	 *     @see ComponentScanBeanDefinitionParser
 	 */
 	public static Set<BeanDefinitionHolder> registerAnnotationConfigProcessors(
 			BeanDefinitionRegistry registry, @Nullable Object source) {
 
+		// 获取Bean工厂.默认为DefaultListableBeanFactory
 		DefaultListableBeanFactory beanFactory = unwrapDefaultListableBeanFactory(registry);
 		if (beanFactory != null) {
 			if (!(beanFactory.getDependencyComparator() instanceof AnnotationAwareOrderComparator)) {
+
+				// 设置默认的排序比较器，在执行Bean工厂的后置处理器时会用到，用来按照优先级来执行Bean工厂的后置处理器。
+				// AnnotationAwareOrderComparator是OrderComparator的子类
+				//  用来支持Spring的Ordered类、@Order注解和@Priority注解
 				beanFactory.setDependencyComparator(AnnotationAwareOrderComparator.INSTANCE);
 			}
+
+			// beanFactory中的autowireCandidateResolver默认为：SimpleAutowireCandidateResolver
 			if (!(beanFactory.getAutowireCandidateResolver() instanceof ContextAnnotationAutowireCandidateResolver)) {
+
+				// 设置Bean工厂中bean自动注入时的候选解析器
 				beanFactory.setAutowireCandidateResolver(new ContextAnnotationAutowireCandidateResolver());
 			}
 		}
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
 
+		// 判断Bean定义注册中心是否包含有名称为"org.springframework.context.annotation.internalConfigurationAnnotationProcessor"的Bean定义
+		// 如果不包括，则创建类型为ConfigurationClassPostProcessor的Bean定义，并向Bean定义注册中心里面注册
+
+		// 用途：ConfigurationClassPostProcessor后置处理器是用来处理@Configuration，@Import，@ImportResource和类内部的@Bean
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+
+			// 继承关系：
+			// ConfigurationClassPostProcessor --> BeanDefinitionRegistryPostProcessor --> BeanFactoryPostProcessor
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
+
+			// 将Bean定义放入到Bean定义注册中心的map中.
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
+		// 判断bean定义注册中心中是否包括名称为org.springframework.context.annotation.internalAutowiredAnnotationProcessor的Bean定义，
+		// 如果不包括，向bean定义注册中心注册类型为AutowiredAnnotationBeanPostProcessor的Bean定义.
+
+		// 用途：AutowiredAnnotationBeanPostProcessor后置处理器是用来处理@Autowired注解和@Value注解的
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+
+			// AutowiredAnnotationBeanPostProcessor --> InstantiationAwareBeanPostProcessorAdapter
+			// 		--> SmartInstantiationAwareBeanPostProcessor --> InstantiationAwareBeanPostProcessor --> BeanPostProcessor
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
 		// Check for JSR-250 support, and if present add the CommonAnnotationBeanPostProcessor.
+		// 判断当前版本是否支持JSR-250
+		// 然后判断bean定义注册中心中是否包括名称为org.springframework.context.annotation.internalCommonAnnotationProcessor的Bean定义，
+		// 如果不包括，向bean定义注册中心注册类型为CommonAnnotationBeanPostProcessor的Bean定义.
+
+		// 用途：CommonAnnotationBeanPostProcessor后置处理器提供对JSR-250规范注解的支持@javax.annotation.Resource、
+		//    @javax.annotation.PostConstruct和@javax.annotation.PreDestroy等的支持。
 		if (jsr250Present && !registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) {
+
+			// CommonAnnotationBeanPostProcessor --> InitDestroyAnnotationBeanPostProcessor(class) --> DestructionAwareBeanPostProcessor,MergedBeanDefinitionPostProcessor
+			//			--> InstantiationAwareBeanPostProcessor --> BeanPostProcessor
 			RootBeanDefinition def = new RootBeanDefinition(CommonAnnotationBeanPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, COMMON_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
 		// Check for JPA support, and if present add the PersistenceAnnotationBeanPostProcessor.
+		// 判断是否支持JPA
+		// 然后判断bean定义注册中心中是否包括名称为org.springframework.context.annotation.internalPersistenceAnnotationProcessor的Bean定义，
+		// 如果不包括，向bean定义注册中心注册类型为PersistenceAnnotationBeanPostProcessor的Bean定义.
+
+		//  用途：EventListenerMethodProcessor后置处理器提供@PersistenceContext的支持。
 		if (jpaPresent && !registry.containsBeanDefinition(PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition();
 			try {
@@ -194,12 +240,19 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
+		// 判断bean定义注册中心中是否包括名称为org.springframework.context.event.internalEventListenerProcessor的Bean定义，
+		// 如果不包括，向bean定义注册中心注册类型为EventListenerMethodProcessor的Bean定义.
+
+		// 用途：EventListenerMethodProcessor后置处理器提供对@EventListener注解的支持。
+		//  @EventListener是在spring4.2之后出现的，可以在一个Bean的方法上使用@EventListener注解来自动注册一个ApplicationListener。
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(EventListenerMethodProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_PROCESSOR_BEAN_NAME));
 		}
 
+		// 判断bean定义注册中心中是否包括名称为org.springframework.context.event.internalEventListenerFactory的Bean定义，
+		// 如果不包括，向bean定义注册中心注册类型为DefaultEventListenerFactory的Bean定义.
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_FACTORY_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(DefaultEventListenerFactory.class);
 			def.setSource(source);
@@ -222,6 +275,8 @@ public abstract class AnnotationConfigUtils {
 		if (registry instanceof DefaultListableBeanFactory) {
 			return (DefaultListableBeanFactory) registry;
 		}
+
+		// 注意：AnnotationConfigApplicationContext是直接继承自GenericApplicationContext
 		else if (registry instanceof GenericApplicationContext) {
 			return ((GenericApplicationContext) registry).getDefaultListableBeanFactory();
 		}

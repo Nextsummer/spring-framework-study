@@ -47,6 +47,9 @@ import org.springframework.util.MultiValueMap;
  */
 class ConditionEvaluator {
 
+	/**
+	 * 用于实现Condition注解的逻辑
+	 */
 	private final ConditionContextImpl context;
 
 
@@ -56,6 +59,7 @@ class ConditionEvaluator {
 	public ConditionEvaluator(@Nullable BeanDefinitionRegistry registry,
 			@Nullable Environment environment, @Nullable ResourceLoader resourceLoader) {
 
+		// 创建ConditionEvaluator对象.
 		this.context = new ConditionContextImpl(registry, environment, resourceLoader);
 	}
 

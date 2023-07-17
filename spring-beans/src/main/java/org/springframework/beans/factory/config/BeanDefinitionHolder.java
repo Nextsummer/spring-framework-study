@@ -36,13 +36,24 @@ import org.springframework.util.StringUtils;
  * @see org.springframework.beans.factory.BeanNameAware
  * @see org.springframework.beans.factory.support.RootBeanDefinition
  * @see org.springframework.beans.factory.support.ChildBeanDefinition
+ *
+ * 	用来保存Bean的定义。包括Bean的定义，名称及别名
  */
 public class BeanDefinitionHolder implements BeanMetadataElement {
 
+	/**
+	 * Bean定义
+	 */
 	private final BeanDefinition beanDefinition;
 
+	/**
+	 * 存放Bean名称
+	 */
 	private final String beanName;
 
+	/**
+	 * 存放Bean的别名.
+	 */
 	@Nullable
 	private final String[] aliases;
 
@@ -123,6 +134,8 @@ public class BeanDefinitionHolder implements BeanMetadataElement {
 	 * or the aliases stored in this bean definition.
 	 */
 	public boolean matchesName(@Nullable String candidateName) {
+
+		// 判断Bean的名称是否相同，当前的候选Bean可能为一般Bean，也可能为工厂Bean
 		return (candidateName != null && (candidateName.equals(this.beanName) ||
 				candidateName.equals(BeanFactoryUtils.transformedBeanName(this.beanName)) ||
 				ObjectUtils.containsElement(this.aliases, candidateName)));

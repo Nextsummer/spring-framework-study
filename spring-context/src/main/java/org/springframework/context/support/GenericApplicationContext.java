@@ -93,13 +93,25 @@ import org.springframework.util.Assert;
  */
 public class GenericApplicationContext extends AbstractApplicationContext implements BeanDefinitionRegistry {
 
+	/**
+	 * 默认的Bean工厂，可以已列表方式获取Bean信息的工厂.
+	 */
 	private final DefaultListableBeanFactory beanFactory;
 
+	/**
+	 * 资源加载器
+	 */
 	@Nullable
 	private ResourceLoader resourceLoader;
 
+	/**
+	 * 是否为定制的classLoader
+	 */
 	private boolean customClassLoader = false;
 
+	/**
+	 * 标记容器是否已经刷新
+	 */
 	private final AtomicBoolean refreshed = new AtomicBoolean();
 
 
@@ -109,6 +121,8 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 	 * @see #refresh
 	 */
 	public GenericApplicationContext() {
+
+		/** 初始化默认的Bean工厂，类型为DefaultListableBeanFactory */
 		this.beanFactory = new DefaultListableBeanFactory();
 	}
 

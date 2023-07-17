@@ -24,12 +24,16 @@ import org.springframework.lang.Nullable;
  *
  * @author Juergen Hoeller
  * @since 2.0
+ *
+ * 	用于表示配置"源对象"的接口
  */
 public interface BeanMetadataElement {
 
 	/**
 	 * Return the configuration source {@code Object} for this metadata element
 	 * (may be {@code null}).
+	 *
+	 * 	获取源对象，如果不存在，返回null
 	 */
 	@Nullable
 	default Object getSource() {

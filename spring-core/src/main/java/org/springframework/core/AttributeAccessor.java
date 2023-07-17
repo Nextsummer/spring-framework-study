@@ -24,6 +24,8 @@ import org.springframework.lang.Nullable;
  *
  * @author Rob Harrop
  * @since 2.0
+ *
+ *  用来定义对对象中元数据访问的抽象接口
  */
 public interface AttributeAccessor {
 
@@ -35,6 +37,9 @@ public interface AttributeAccessor {
 	 * class or package names as prefix.
 	 * @param name the unique attribute key
 	 * @param value the attribute value to be attached
+	 *
+	 * 设置属性的值，name-value，自定义bean中的属性值.
+	 * 如果属性的值为空，该属性将会被移除。否则会被加入到attribute对应的LinkedHashMap中
 	 */
 	void setAttribute(String name, @Nullable Object value);
 
@@ -43,6 +48,8 @@ public interface AttributeAccessor {
 	 * Return {@code null} if the attribute doesn't exist.
 	 * @param name the unique attribute key
 	 * @return the current value of the attribute, if any
+	 *
+	 * 返回指定属性对应的值，如果属性不存在，则返回null
 	 */
 	@Nullable
 	Object getAttribute(String name);
@@ -52,6 +59,8 @@ public interface AttributeAccessor {
 	 * Return {@code null} if no attribute under {@code name} is found.
 	 * @param name the unique attribute key
 	 * @return the last value of the attribute, if any
+	 *
+	 *  删除指定的name的属性，如果属性不存在，则返回null
 	 */
 	@Nullable
 	Object removeAttribute(String name);
@@ -60,11 +69,15 @@ public interface AttributeAccessor {
 	 * Return {@code true} if the attribute identified by {@code name} exists.
 	 * Otherwise return {@code false}.
 	 * @param name the unique attribute key
+	 *
+	 *  判断指定的name属性是否存在，属性名称需要与设置的属性名完全相同。
 	 */
 	boolean hasAttribute(String name);
 
 	/**
 	 * Return the names of all attributes.
+	 *
+	 * 获取所有属性的名称.
 	 */
 	String[] attributeNames();
 

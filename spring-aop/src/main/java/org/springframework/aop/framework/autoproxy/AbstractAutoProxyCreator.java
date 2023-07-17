@@ -450,6 +450,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		ProxyFactory proxyFactory = new ProxyFactory();
 		proxyFactory.copyFrom(this);
 
+		// 默认不指定生成代理的方式，则proxyTargetClass为false，使用的是jdk动态代理
+		// 如果未强制指定使用cglib生成动态代理，则会去校验当前接口是否能够正常生成代理对象
 		if (proxyFactory.isProxyTargetClass()) {
 			// Explicit handling of JDK proxy targets (for introduction advice scenarios)
 			if (Proxy.isProxyClass(beanClass)) {
@@ -460,6 +462,8 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			}
 		}
 		else {
+			// 当前bean定义中指定了preserveTargetClass属性为true，则会强制使用cglib动态代理
+			//   如果为标记类的接口，例如：Aware接口，则还是会强制使用cglib去生成代理
 			// No proxyTargetClass flag enforced, let's apply our default checks...
 			if (shouldProxyTargetClass(beanClass, beanName)) {
 				proxyFactory.setProxyTargetClass(true);
@@ -469,9 +473,13 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			}
 		}
 
+		// 找到所有的advisors增强点，即：环绕，前置，后置，返回，异常等通知方法
 		Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
+		// 设置增强点
 		proxyFactory.addAdvisors(advisors);
+		// 设置需要代理的目标类
 		proxyFactory.setTargetSource(targetSource);
+		// 定制代理工厂，可以使用自定义的代理工厂，此处使用的还是默认的DefaultAopProxyFactory工厂
 		customizeProxyFactory(proxyFactory);
 
 		proxyFactory.setFrozen(this.freezeProxy);
@@ -479,6 +487,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 			proxyFactory.setPreFiltered(true);
 		}
 
+		// 创建代理对象，里面会判断使用JDK动态代理还是CGLIB动态代理
 		return proxyFactory.getProxy(getProxyClassLoader());
 	}
 

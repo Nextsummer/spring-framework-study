@@ -28,6 +28,8 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @author Mark Fisher
  * @since 2.5
+ *
+ * 用于确定指定的Bean定义是否符合特定依赖项的候选者的策略接口
  */
 public interface AutowireCandidateResolver {
 
@@ -40,6 +42,8 @@ public interface AutowireCandidateResolver {
 	 * @param descriptor the descriptor for the target method parameter or field
 	 * @return whether the bean definition qualifies as autowire candidate
 	 * @see org.springframework.beans.factory.config.BeanDefinition#isAutowireCandidate()
+	 *
+	 * 判断给定的Bean定义是否允许被依赖注入(bean定义的默认值都是true)
 	 */
 	default boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
 		return bdHolder.getBeanDefinition().isAutowireCandidate();
@@ -53,6 +57,8 @@ public interface AutowireCandidateResolver {
 	 * non-required status some other way (e.g. through a parameter annotation)
 	 * @since 5.0
 	 * @see DependencyDescriptor#isRequired()
+	 *
+	 * 判断给定的descriptor是否是必须的
 	 */
 	default boolean isRequired(DependencyDescriptor descriptor) {
 		return descriptor.isRequired();

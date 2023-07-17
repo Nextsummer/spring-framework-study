@@ -51,10 +51,13 @@ import org.springframework.stereotype.Component;
  */
 abstract class ConfigurationClassUtils {
 
+	// 完全
 	public static final String CONFIGURATION_CLASS_FULL = "full";
 
+	// 类似
 	public static final String CONFIGURATION_CLASS_LITE = "lite";
 
+	// className + "." + attributeName
 	public static final String CONFIGURATION_CLASS_ATTRIBUTE =
 			Conventions.getQualifiedAttributeName(ConfigurationClassPostProcessor.class, "configurationClass");
 
@@ -86,11 +89,17 @@ abstract class ConfigurationClassUtils {
 			BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
 
 		String className = beanDef.getBeanClassName();
+
+		// 如果bean定义对应的class为null || bean定义中存在着工厂方法
 		if (className == null || beanDef.getFactoryMethodName() != null) {
 			return false;
 		}
 
+		//   注意：Spring内部的BeanDefinition默认都是RootBeanDefinition，这个类继承了AbstractBeanDefinition
 		AnnotationMetadata metadata;
+
+		// 	通过注解扫描得到的BeanDefinition都属于AnnotatedGenericBeanDefinition，实现了AnnotatedBeanDefinition接口.
+		// 此处判断当前的BeanDefinition是否属于AnnotatedBeanDefinition。
 		if (beanDef instanceof AnnotatedBeanDefinition &&
 				className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
 			// Can reuse the pre-parsed metadata from the given BeanDefinition...
@@ -134,8 +143,10 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// It's a full or lite configuration candidate... Let's determine the order value, if any.
+		// 获取排序优先级信息
 		Integer order = getOrder(metadata);
 		if (order != null) {
+			// 设置bean定义的优先级
 			beanDef.setAttribute(ORDER_ATTRIBUTE, order);
 		}
 
@@ -151,11 +162,14 @@ abstract class ConfigurationClassUtils {
 	 */
 	public static boolean isConfigurationCandidate(AnnotationMetadata metadata) {
 		// Do not consider an interface or an annotation...
+		// 如果当前的bean定义指定的class是否为一个接口.
 		if (metadata.isInterface()) {
 			return false;
 		}
 
 		// Any of the typical annotations found?
+		// 如果带有：@Component @ComponentScan @Import @ImportResource注解，则表示是一种类似于配置类的候选配置
+		//     lite: 类似
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
 				return true;
@@ -168,6 +182,8 @@ abstract class ConfigurationClassUtils {
 
 	static boolean hasBeanMethods(AnnotationMetadata metadata) {
 		try {
+
+			// 查看当前的bean定义中是否包括标注有@Bean注解的方法.
 			return metadata.hasAnnotatedMethods(Bean.class.getName());
 		}
 		catch (Throwable ex) {

@@ -45,6 +45,8 @@ import org.springframework.util.Assert;
  *
  * @author Juergen Hoeller
  * @since 4.0
+ *
+ * 处理@Lazy注解，该类中重写了getLazyResolutionProxyIfNecessary方法.
  */
 public class ContextAnnotationAutowireCandidateResolver extends QualifierAnnotationAutowireCandidateResolver {
 

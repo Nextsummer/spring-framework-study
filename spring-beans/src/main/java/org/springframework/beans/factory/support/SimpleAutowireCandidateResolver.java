@@ -27,6 +27,8 @@ import org.springframework.lang.Nullable;
  * @author Mark Fisher
  * @author Juergen Hoeller
  * @since 2.5
+ *
+ *  相当于一个简单的适配器
  */
 public class SimpleAutowireCandidateResolver implements AutowireCandidateResolver {
 
