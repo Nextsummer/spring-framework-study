@@ -50,6 +50,8 @@ import org.springframework.core.io.ResourceLoader;
  * @see org.springframework.core.io.ResourceLoader
  * @see org.springframework.context.ApplicationContext
  * @see org.springframework.context.ResourceLoaderAware
+ *
+ * 主要用于应用配置文件的解析
  */
 public interface ResourcePatternResolver extends ResourceLoader {
 
@@ -70,6 +72,8 @@ public interface ResourcePatternResolver extends ResourceLoader {
 	 * @param locationPattern the location pattern to resolve
 	 * @return the corresponding Resource objects
 	 * @throws IOException in case of I/O errors
+	 *
+	 * 根据资源位置获取资源列表
 	 */
 	Resource[] getResources(String locationPattern) throws IOException;
 

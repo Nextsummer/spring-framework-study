@@ -1068,6 +1068,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 */
 	protected Object getEarlyBeanReference(String beanName, RootBeanDefinition mbd, Object bean) {
 		Object exposedObject = bean;
+
+		// 如果当前的bean定义不是合成类而且已经注册过InstantiationAwareBeanPostProcessor类型的后置处理器
 		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
 			for (BeanPostProcessor bp : getBeanPostProcessors()) {
 				if (bp instanceof SmartInstantiationAwareBeanPostProcessor) {
@@ -1217,6 +1219,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * @param beanName the name of the bean
 	 * @param mbd the bean definition for the bean
 	 * @return the shortcut-determined bean instance, or {@code null} if none
+	 *
+	 *
+	 * 提前执行InstantiationAwareBeanPostProcessor的postProcessBeforeInstantiation方法和
+	 *        InstantiationAwareBeanPostProcessor的postProcessAfterInitialization方法
 	 */
 	@Nullable
 	protected Object resolveBeforeInstantiation(String beanName, RootBeanDefinition mbd) {
@@ -1253,6 +1259,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		for (BeanPostProcessor bp : getBeanPostProcessors()) {
 			if (bp instanceof InstantiationAwareBeanPostProcessor) {
 				InstantiationAwareBeanPostProcessor ibp = (InstantiationAwareBeanPostProcessor) bp;
+
+				// 执行后置处理器时会将需要创建代理的bean放入到advisedBeans集合中
 				Object result = ibp.postProcessBeforeInstantiation(beanClass, beanName);
 				if (result != null) {
 					return result;
@@ -1381,6 +1389,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		String outerBean = this.currentlyCreatedBean.get();
 		this.currentlyCreatedBean.set(beanName);
 		try {
+
+			// 通过回调方法去创建bean对象
 			instance = instanceSupplier.get();
 		}
 		finally {
@@ -1395,6 +1405,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		if (instance == null) {
 			instance = new NullBean();
 		}
+
+		// 将instance赋值给wrappedObject属性中，使用的时候直接通过BeanWrapper接口的getWrappedInstance获取到wrappedObject
 		BeanWrapper bw = new BeanWrapperImpl(instance);
 		initBeanWrapper(bw);
 		return bw;
@@ -1411,11 +1423,13 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	protected Object getObjectForBeanInstance(
 			Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
 
+		// 从ThreadLocal中获取当前正在创建的Bean的名称
 		String currentlyCreatedBean = this.currentlyCreatedBean.get();
 		if (currentlyCreatedBean != null) {
 			registerDependentBean(beanName, currentlyCreatedBean);
 		}
 
+		// 调用父类AbstractBeanFactory的getObjectForBeanInstance方法获取bean实例
 		return super.getObjectForBeanInstance(beanInstance, name, beanName, mbd);
 	}
 
@@ -1854,16 +1868,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				/**
 				 *
 				 * 判断当前的属性是否为简单类型：
-				 (type != void.class && type != Void.class &&
-				 (ClassUtils.isPrimitiveOrWrapper(type) ||
-				 Enum.class.isAssignableFrom(type) ||
-				 CharSequence.class.isAssignableFrom(type) ||
-				 Number.class.isAssignableFrom(type) ||
-				 Date.class.isAssignableFrom(type) ||
-				 URI.class == type ||
-				 URL.class == type ||
-				 Locale.class == type ||
-				 Class.class == type));
+					 (type != void.class && type != Void.class &&
+					 (ClassUtils.isPrimitiveOrWrapper(type) ||
+					 Enum.class.isAssignableFrom(type) ||
+					 CharSequence.class.isAssignableFrom(type) ||
+					 Number.class.isAssignableFrom(type) ||
+					 Date.class.isAssignableFrom(type) ||
+					 URI.class == type ||
+					 URL.class == type ||
+					 Locale.class == type ||
+					 Class.class == type));
 				 *
 				 */
 				boolean isSimple = BeanUtils.isSimpleProperty(pd.getPropertyType());

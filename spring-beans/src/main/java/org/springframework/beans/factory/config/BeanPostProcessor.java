@@ -58,10 +58,6 @@ import org.springframework.lang.Nullable;
 public interface BeanPostProcessor {
 
 	/**
-	 * 该方法是Spring后置处理器中的方法
-	 * 该方法是在Bean实例化(new)之后，初始化(设置各种属性)之前会被调用
-	 * 在调用afterPropertiesSet方法之前会被调用
-	 *
 	 * Apply this {@code BeanPostProcessor} to the given new bean instance <i>before</i> any bean
 	 * initialization callbacks (like InitializingBean's {@code afterPropertiesSet}
 	 * or a custom init-method). The bean will already be populated with property values.
@@ -73,6 +69,12 @@ public interface BeanPostProcessor {
 	 * if {@code null}, no subsequent BeanPostProcessors will be invoked
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet
+	 *
+	 *
+	 * 该方法是Spring后置处理器中的方法
+	 * 该方法是在Bean实例化(new)之后，初始化(设置各种属性)之前会被调用
+	 * 在调用afterPropertiesSet方法之前会被调用
+	 *
 	 */
 	@Nullable
 	default Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
@@ -80,9 +82,6 @@ public interface BeanPostProcessor {
 	}
 
 	/**
-	 * 在bean初始化之后会被调用
-	 * 在调用InitializingBean的afterPropertiesSet方法或者init-method指定的方法执行之后调用.
-	 *
 	 * Apply this {@code BeanPostProcessor} to the given new bean instance <i>after</i> any bean
 	 * initialization callbacks (like InitializingBean's {@code afterPropertiesSet}
 	 * or a custom init-method). The bean will already be populated with property values.
@@ -102,6 +101,11 @@ public interface BeanPostProcessor {
 	 * @throws org.springframework.beans.BeansException in case of errors
 	 * @see org.springframework.beans.factory.InitializingBean#afterPropertiesSet
 	 * @see org.springframework.beans.factory.FactoryBean
+	 *
+	 *
+	 * 在bean初始化之后会被调用
+	 * 在调用InitializingBean的afterPropertiesSet方法或者init-method指定的方法执行之后调用.
+	 *
 	 */
 	@Nullable
 	default Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {

@@ -100,9 +100,11 @@ public class InitDestroyAnnotationBeanPostProcessor
 
 	protected transient Log logger = LogFactory.getLog(getClass());
 
+	// 通过CommonAnnotationBeanPostProcessor的构造方法添加@PostConstruct注解
 	@Nullable
 	private Class<? extends Annotation> initAnnotationType;
 
+	// 通过CommonAnnotationBeanPostProcessor的构造方法添加@PreDestroy注解
 	@Nullable
 	private Class<? extends Annotation> destroyAnnotationType;
 
@@ -180,6 +182,8 @@ public class InitDestroyAnnotationBeanPostProcessor
 
 	@Override
 	public void postProcessBeforeDestruction(Object bean, String beanName) throws BeansException {
+
+		// 执行@PreDestroy注解标注的方法
 		LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
 		try {
 			metadata.invokeDestroyMethods(bean, beanName);
@@ -309,8 +313,13 @@ public class InitDestroyAnnotationBeanPostProcessor
 		public LifecycleMetadata(Class<?> targetClass, Collection<LifecycleElement> initMethods,
 				Collection<LifecycleElement> destroyMethods) {
 
+			// 目标类
 			this.targetClass = targetClass;
+
+			// 初始化方法
 			this.initMethods = initMethods;
+
+			// 销毁方法
 			this.destroyMethods = destroyMethods;
 		}
 
@@ -318,6 +327,8 @@ public class InitDestroyAnnotationBeanPostProcessor
 			Set<LifecycleElement> checkedInitMethods = new LinkedHashSet<>(this.initMethods.size());
 			for (LifecycleElement element : this.initMethods) {
 				String methodIdentifier = element.getIdentifier();
+
+				// 注册初始化时方法。如果当前的Bean定义中没有该初始化方法，则设置到bean定义中
 				if (!beanDefinition.isExternallyManagedInitMethod(methodIdentifier)) {
 					beanDefinition.registerExternallyManagedInitMethod(methodIdentifier);
 					checkedInitMethods.add(element);
@@ -329,6 +340,8 @@ public class InitDestroyAnnotationBeanPostProcessor
 			Set<LifecycleElement> checkedDestroyMethods = new LinkedHashSet<>(this.destroyMethods.size());
 			for (LifecycleElement element : this.destroyMethods) {
 				String methodIdentifier = element.getIdentifier();
+
+				// 注册销毁方法。如果当前的Bean定义中没有该销毁方法，则设置到Bean定义中
 				if (!beanDefinition.isExternallyManagedDestroyMethod(methodIdentifier)) {
 					beanDefinition.registerExternallyManagedDestroyMethod(methodIdentifier);
 					checkedDestroyMethods.add(element);
@@ -337,7 +350,11 @@ public class InitDestroyAnnotationBeanPostProcessor
 					}
 				}
 			}
+
+			// 设置验证完毕的初始化方法
 			this.checkedInitMethods = checkedInitMethods;
+
+			// 设置验证完毕的销毁方法
 			this.checkedDestroyMethods = checkedDestroyMethods;
 		}
 
@@ -350,6 +367,8 @@ public class InitDestroyAnnotationBeanPostProcessor
 					if (logger.isTraceEnabled()) {
 						logger.trace("Invoking init method on bean '" + beanName + "': " + element.getMethod());
 					}
+
+					// 执行@PostConstruct标注的方法
 					element.invoke(target);
 				}
 			}
@@ -364,6 +383,8 @@ public class InitDestroyAnnotationBeanPostProcessor
 					if (logger.isTraceEnabled()) {
 						logger.trace("Invoking destroy method on bean '" + beanName + "': " + element.getMethod());
 					}
+
+					// 执行@PreDestroy标注的方法
 					element.invoke(target);
 				}
 			}
@@ -405,6 +426,8 @@ public class InitDestroyAnnotationBeanPostProcessor
 		}
 
 		public void invoke(Object target) throws Throwable {
+
+			// 反射调用init或者destroy方法。从这个反射调用的地方可以看到，init和destroy方法都不能有参数
 			ReflectionUtils.makeAccessible(this.method);
 			this.method.invoke(target, (Object[]) null);
 		}

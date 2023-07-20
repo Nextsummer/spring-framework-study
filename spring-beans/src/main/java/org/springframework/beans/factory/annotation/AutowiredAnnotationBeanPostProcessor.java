@@ -135,6 +135,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 	private final Set<Class<? extends Annotation>> autowiredAnnotationTypes = new LinkedHashSet<>(4);
 
+	/**
+	 * @Autowired中的required属性名称
+	 */
 	private String requiredParameterName = "required";
 
 	private boolean requiredParameterValue = true;
@@ -148,6 +151,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 	private final Map<Class<?>, Constructor<?>[]> candidateConstructorsCache = new ConcurrentHashMap<>(256);
 
+	/**
+	 * bean的class名称和对应的元数据的映射信息.
+	 */
 	private final Map<String, InjectionMetadata> injectionMetadataCache = new ConcurrentHashMap<>(256);
 
 
@@ -159,9 +165,15 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	 */
 	@SuppressWarnings("unchecked")
 	public AutowiredAnnotationBeanPostProcessor() {
+
+		// 设置@Autowired注解类型
 		this.autowiredAnnotationTypes.add(Autowired.class);
+
+		// 设置@Value注解类型
 		this.autowiredAnnotationTypes.add(Value.class);
 		try {
+
+			// 支持使用JSR330中的@Inject进行注入.
 			this.autowiredAnnotationTypes.add((Class<? extends Annotation>)
 					ClassUtils.forName("javax.inject.Inject", AutowiredAnnotationBeanPostProcessor.class.getClassLoader()));
 			logger.trace("JSR-330 'javax.inject.Inject' annotation found and supported for autowiring");
@@ -402,8 +414,12 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
+
+		// 查询需要进行依赖注入的元数据
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
+
+			// 执行注入操作
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {
@@ -652,10 +668,15 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			this.required = required;
 		}
 
+		/**
+		 * 直接通过具体属性完成注入，当@Autowired注解标注在属性上，注入的时候会执行该方法
+		 */
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
 			Field field = (Field) this.member;
 			Object value;
+
+			// 如果值已经解析过了，则直接从缓存中获取
 			if (this.cached) {
 				try {
 					value = resolvedCachedArgument(beanName, this.cachedFieldValue);
@@ -668,6 +689,8 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			else {
 				value = resolveFieldValue(field, bean, beanName);
 			}
+
+			// 反射完成依赖属性的注入.
 			if (value != null) {
 				ReflectionUtils.makeAccessible(field);
 				field.set(bean, value);
@@ -683,12 +706,16 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			TypeConverter typeConverter = beanFactory.getTypeConverter();
 			Object value;
 			try {
+
+				// 获取依赖的bean对象。通过AutowiredCapableBeanFactory接口提供，可以从beanFactory中获取Bean的能力
 				value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 			}
 			catch (BeansException ex) {
 				throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(field), ex);
 			}
 			synchronized (this) {
+
+				// 如果没有解析过，则执行解析操作，并将值缓存起来
 				if (!this.cached) {
 					Object cachedFieldValue = null;
 					if (value != null || this.required) {
@@ -729,6 +756,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			this.required = required;
 		}
 
+		/**
+		 * 当@Autowired注解标注在方法上，注入的时候会调用该方法
+		 */
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
 			if (checkPropertySkipping(pvs)) {
@@ -750,6 +780,8 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			}
 			if (arguments != null) {
 				try {
+
+					// 通过反射调用方法，进行属性赋值
 					ReflectionUtils.makeAccessible(method);
 					method.invoke(bean, arguments);
 				}

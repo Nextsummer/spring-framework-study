@@ -36,19 +36,27 @@ import org.springframework.lang.Nullable;
  * @author Juergen Hoeller
  * @see org.springframework.context.support.ResourceBundleMessageSource
  * @see org.springframework.context.support.ReloadableResourceBundleMessageSource
+ *
+ *
+ * 按照区域信息获取国际化配置文件中的某个值
+ *
+ * 国际化使用.
  */
 public interface MessageSource {
 
 	/**
+	 *
+	 * 根据区域Locale获取国际化配置信息
+	 *
 	 * Try to resolve the message. Return default message if no message was found.
 	 * @param code the message code to look up, e.g. 'calculator.noRateSet'.
 	 * MessageSource users are encouraged to base message names on qualified class
-	 * or package names, avoiding potential conflicts and ensuring maximum clarity.
+	 * or package names, avoiding potential conflicts and ensuring maximum clarity.    消息编码
 	 * @param args an array of arguments that will be filled in for params within
 	 * the message (params look like "{0}", "{1,date}", "{2,time}" within a message),
-	 * or {@code null} if none
-	 * @param defaultMessage a default message to return if the lookup fails
-	 * @param locale the locale in which to do the lookup
+	 * or {@code null} if none														   消息编码对应的实参内容
+	 * @param defaultMessage a default message to return if the lookup fails		   默认消息内容
+	 * @param locale the locale in which to do the lookup							   区域信息
 	 * @return the resolved message if the lookup was successful, otherwise
 	 * the default message passed as a parameter (which may be {@code null})
 	 * @see #getMessage(MessageSourceResolvable, Locale)
@@ -70,18 +78,22 @@ public interface MessageSource {
 	 * @throws NoSuchMessageException if no corresponding message was found
 	 * @see #getMessage(MessageSourceResolvable, Locale)
 	 * @see java.text.MessageFormat
+	 *
+	 * 获取国际化信息
 	 */
 	String getMessage(String code, @Nullable Object[] args, Locale locale) throws NoSuchMessageException;
 
 	/**
+	 * 获取国际化信息
+	 *
 	 * Try to resolve the message using all the attributes contained within the
 	 * {@code MessageSourceResolvable} argument that was passed in.
 	 * <p>NOTE: We must throw a {@code NoSuchMessageException} on this method
 	 * since at the time of calling this method we aren't able to determine if the
 	 * {@code defaultMessage} property of the resolvable is {@code null} or not.
 	 * @param resolvable the value object storing attributes required to resolve a message
-	 * (may include a default message)
-	 * @param locale the locale in which to do the lookup
+	 * (may include a default message)						自定义的消息解析规则。为一个接口，可以自定义消息的编码，解析规则，以及默认的国际化信息内容
+	 * @param locale the locale in which to do the lookup   国际化区域信息.
 	 * @return the resolved message (never {@code null} since even a
 	 * {@code MessageSourceResolvable}-provided default message needs to be non-null)
 	 * @throws NoSuchMessageException if no corresponding message was found

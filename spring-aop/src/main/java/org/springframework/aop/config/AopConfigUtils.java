@@ -58,8 +58,13 @@ public abstract class AopConfigUtils {
 
 	static {
 		// Set up the escalation list...
+		// 事务配置会使用InfrastructureAdvisorAutoProxyCreator (Infrastructure：基础设施、基建)
 		APC_PRIORITY_LIST.add(InfrastructureAdvisorAutoProxyCreator.class);
+
+		// 该类主要来处理AspectJ切面的
 		APC_PRIORITY_LIST.add(AspectJAwareAdvisorAutoProxyCreator.class);
+
+		// AOP配置会使用AnnotationAwareAspectJAutoProxyCreator
 		APC_PRIORITY_LIST.add(AnnotationAwareAspectJAutoProxyCreator.class);
 	}
 

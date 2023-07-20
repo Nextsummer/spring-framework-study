@@ -40,6 +40,8 @@ package org.springframework.beans.factory;
  * @author Juergen Hoeller
  * @since 4.1
  * @see org.springframework.beans.factory.config.ConfigurableListableBeanFactory#preInstantiateSingletons()
+ *
+ * 在IOC容器中所有的单实例Bean创建完成之后，会执行该接口对应的方法.
  */
 public interface SmartInitializingSingleton {
 
@@ -52,6 +54,8 @@ public interface SmartInitializingSingleton {
 	 * lazily initialized on demand after {@link BeanFactory} bootstrap,
 	 * and not for any other bean scope either. Carefully use it for beans
 	 * with the intended bootstrap semantics only.
+	 *
+	 * 如果某个Bean实现了该接口，则在容器中的单实例Bean都创建完成之后，会调用bean实例对应的afterSingletonsInstantiated方法.
 	 */
 	void afterSingletonsInstantiated();
 

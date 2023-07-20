@@ -35,6 +35,22 @@ import org.springframework.core.type.AnnotationMetadata;
  * @since 3.1
  * @see org.springframework.cache.annotation.EnableCaching
  * @see org.springframework.transaction.annotation.EnableTransactionManagement
+ *
+ *
+ *
+ * 该组件主要是用来给容器中注册组件的.
+ * 会调用registerBeanDefinitions方法给容器中注册组件.
+ *
+ * 调用时机：
+ * 	容器刷新时调用 refresh()
+ * 		-> invokeBeanFactoryPostProcessors()
+ * 		-> PostProcessRegistrationDelegate.invokeBeanFactoryPostProcessors()
+ * 		-> PostProcessRegistrationDelegate类中的invokeBeanDefinitionRegistryPostProcessors方法
+ * 		-> ConfigurationClassPostProcessor类的postProcessBeanDefinitionRegistry方法
+ * 		-> this.reader.loadBeanDefinitions(configClasses)
+ * 		-> ConfigurationClassBeanDefinitionReader类的loadBeanDefinitions方法
+ * 		-> ConfigurationClassBeanDefinitionReader类的loadBeanDefinitionsFromRegistrars方法
+ * 		-> AutoProxyRegistrar类的registerBeanDefinitions方法.
  */
 public class AutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 
@@ -54,23 +70,38 @@ public class AutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 	 * annotation it finds -- as long as it exposes the right {@code mode} and
 	 * {@code proxyTargetClass} attributes, the APC can be registered and configured all
 	 * the same.
+	 *
+	 * 在ConfigurationClassBeanDefinitionReader方法中会调用该方法进行bean定义的加载及注册
 	 */
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		boolean candidateFound = false;
 		Set<String> annTypes = importingClassMetadata.getAnnotationTypes();
 		for (String annType : annTypes) {
+
+			// AnnotationConfigUtils工具类一般是用来获取注解中设置的所有属性
+			// 得到一个key-value格式的map对象. key为annotation中的属性，value为annotation中属性对应的值.
 			AnnotationAttributes candidate = AnnotationConfigUtils.attributesFor(importingClassMetadata, annType);
 			if (candidate == null) {
 				continue;
 			}
+
+			// 获取@EnableTransactionManagement注解中指定的mode属性
 			Object mode = candidate.get("mode");
+
+			// 获取@EnableTransactionManagement注解中指定的proxyTargetClass属性.
 			Object proxyTargetClass = candidate.get("proxyTargetClass");
+
+			// mode和proxyTargetClass存在 && mode是AdviceMode类型 && targetClass的类型为Boolean.
 			if (mode != null && proxyTargetClass != null && AdviceMode.class == mode.getClass() &&
 					Boolean.class == proxyTargetClass.getClass()) {
 				candidateFound = true;
 				if (mode == AdviceMode.PROXY) {
+
+					// 注解中的默认属性为PROXY，此处会执行。默认给容器中注册一个InfrastructureAdvisorAutoProxyCreator
 					AopConfigUtils.registerAutoProxyCreatorIfNecessary(registry);
+
+					// proxyTargetClass如果在@EnableTransactionManagement中未指定，默认值为false，下面不会执行.
 					if ((Boolean) proxyTargetClass) {
 						AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
 						return;

@@ -525,7 +525,6 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 			 */
 			prepareRefresh();
 
-			//
 			/*
 			 * Tell the subclass to refresh the internal bean factory.
 			 *

@@ -67,6 +67,9 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #createBean
 	 * @see #autowire
 	 * @see #autowireBeanProperties
+	 *
+	 * 该种注入模式表示需要通过 @Autowired注解进行注入，如果使用这种方式.
+	 * 但是不使用Autowired，就算有setter方法，也无法注入
 	 */
 	int AUTOWIRE_NO = 0;
 
@@ -76,6 +79,8 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #createBean
 	 * @see #autowire
 	 * @see #autowireBeanProperties
+	 *
+	 * 表示按照bean的名称进行注入
 	 */
 	int AUTOWIRE_BY_NAME = 1;
 
@@ -85,6 +90,8 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * @see #createBean
 	 * @see #autowire
 	 * @see #autowireBeanProperties
+	 *
+	 * 表示按照bean的类型进行注入
 	 */
 	int AUTOWIRE_BY_TYPE = 2;
 
@@ -93,6 +100,8 @@ public interface AutowireCapableBeanFactory extends BeanFactory {
 	 * can be satisfied (involves resolving the appropriate constructor).
 	 * @see #createBean
 	 * @see #autowire
+	 *
+	 * 表示按照构造函数进行注入
 	 */
 	int AUTOWIRE_CONSTRUCTOR = 3;
 

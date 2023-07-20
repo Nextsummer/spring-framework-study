@@ -46,6 +46,8 @@ public interface ApplicationEventPublisher {
 	 * @see #publishEvent(Object)
 	 * @see org.springframework.context.event.ContextRefreshedEvent
 	 * @see org.springframework.context.event.ContextClosedEvent
+	 *
+	 * 用于向容器中发布通知事件
 	 */
 	default void publishEvent(ApplicationEvent event) {
 		publishEvent((Object) event);
